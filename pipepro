@@ -1,0 +1,32 @@
+node ('master')
+{ 
+    stage ('Continous Download')
+    {
+        git 'https://github.com/selenium-saikrishna/maven.git'
+    }
+    stage ('Continous Build')
+    {
+        sh 'mvn package'
+    }
+    stage ('Continous Deployment')
+    {
+        sh 'scp /var/lib/jenkins/workspace/Pipeline/webapp/target/webapp.war ubuntu@172.31.9.132:/var/lib/tomcat7/webapps/qaenv.war'
+    }
+    stage ('Continous Testing')
+    {
+        git 'https://github.com/selenium-saikrishna/FunctionalTesting.git'
+    }
+    stage ('Continous Delivery')
+    {
+        input message: '=====Waiting For Approval From Deployment Manager====='
+        sh 'scp /var/lib/jenkins/workspace/Pipeline/webapp/target/webapp.war ubuntu@172.31.1.136:/var/lib/tomcat7/webapps/prodenv.war'
+    }
+    failure
+    {
+        mail bcc: '.'
+        body: 'Jenkins job failed due to unknown error', c: ' ',
+        from: ' ', reply to: ' ',
+        subject: 'Build Failed'
+        to: 'raj9891devops@gmail.com'
+    }
+}
